@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NativeBaseProvider, Box, Button, Text, FlatList, Icon } from 'native-base';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -7,10 +7,42 @@ export default function Listas() {
   const [tarefas, setTarefas] = useState([]);
   const navigation = useNavigation();
 
-  const toggleStatus = (index) => {
+  useEffect(() => {
+    const fetchTarefas = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/tarefas/lista');
+        const data = await response.json();
+        setTarefas(data);
+      } catch (error) {
+        console.error('Erro ao buscar tarefas:', error);
+      }
+    };
+
+    fetchTarefas();
+  }, []);
+
+  const toggleStatus = async (index) => {
     const novaLista = [...tarefas];
-    novaLista[index].status = novaLista[index].status === 'pendente' ? 'concluido' : 'pendente';
-    setTarefas(novaLista);
+    const tarefa = novaLista[index];
+    tarefa.status = tarefa.status === 'pendente' ? 'concluido' : 'pendente';
+
+    try {
+      const response = await fetch(`http://localhost:8080/tarefas/${tarefa.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tarefa),
+      });
+
+      if (response.ok) {
+        setTarefas(novaLista);
+      } else {
+        console.error('Erro ao atualizar status da tarefa');
+      }
+    } catch (error) {
+      console.error('Erro ao conectar com a API');
+    }
   };
 
   const renderItem = ({ item, index }) => (

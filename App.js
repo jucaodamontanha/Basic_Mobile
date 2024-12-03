@@ -14,17 +14,17 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <TarefaProvider>
-    <NativeBaseProvider>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Cadastro" component={Cadastro} />
-          <Stack.Screen name="Listas" component={Listas} />
-          <Stack.Screen name="Tarefas" component={Tarefas} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NativeBaseProvider>
+      <NativeBaseProvider>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <Stack.Navigator initialRouteName="Login">
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Cadastro" component={Cadastro} />
+            <Stack.Screen name="Listas" component={Listas} />
+            <Stack.Screen name="Tarefas" component={Tarefas} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </NativeBaseProvider>
     </TarefaProvider>
   );
 }

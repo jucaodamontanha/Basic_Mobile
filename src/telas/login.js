@@ -5,13 +5,40 @@ export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (email === 'root' && senha === 'root') {
       navigation.navigate('Cadastro'); // Redireciona para a tela de cadastro
-    } else if (email && senha) {
-      navigation.navigate('Listas'); // Redireciona para a tela de listas
+      return;
+    }
+
+    if (email && senha) {
+      try {
+        const response = await fetch('URL_DA_SUA_API', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            senha,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            navigation.navigate('Listas'); // Redireciona para a tela de listas
+          } else {
+            console.log('Login inválido');
+          }
+        } else {
+          console.log('Erro ao realizar login');
+        }
+      } catch (error) {
+        console.log('Erro ao conectar com a API');
+      }
     } else {
-      console.log('Login inválido');
+      console.log('Por favor, preencha todos os campos');
     }
   };
 
@@ -19,9 +46,9 @@ export default function Login({ navigation }) {
     <NativeBaseProvider>
       <Box 
         safeArea 
-        flex={1} // Permite que o Box ocupe toda a altura da tela
-        justifyContent="center" // Centraliza verticalmente
-        alignItems="center" // Centraliza horizontalmente
+        flex={1} 
+        justifyContent="center" 
+        alignItems="center" 
         p="2" 
         w="90%" 
         mx="auto"
@@ -43,7 +70,7 @@ export default function Login({ navigation }) {
           <Text 
             onPress={() => console.log('Redirecionar para recuperação de senha')} 
             color="blue.500"
-            textAlign="center" // Centraliza o texto
+            textAlign="center"
           >
             Esqueceu a senha?
           </Text>

@@ -1,21 +1,81 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, Box, Input, Button, Text, VStack, Radio } from 'native-base';
+import { NativeBaseProvider, Box, Input, Button, Text, VStack, Radio, Alert } from 'native-base';
 
 export default function Cadastro({ navigation }) {
   const [nomeCompleto, setNomeCompleto] = useState('');
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [email, setEmail] = useState('');
-  const [funcao, setFuncao] = useState('tecnico');
+  const [funcao, setFuncao] = useState('');
   const [mensagem, setMensagem] = useState('');
 
-  const handleCadastro = () => {
-    // Aqui você pode adicionar a lógica para registrar o usuário
-    if (nomeCompleto && login && senha && email) {
-      // Simulação de cadastro bem-sucedido
-      setMensagem('Cadastro realizado com sucesso!');
-    } else {
-      setMensagem('Por favor, preencha todos os campos.');
+ 
+
+  const handleCadastro = async () => {
+    try {
+      const endPoint = 'https://localhost:8080/cadastro';
+      console.log('Iniciando requisição para:', endPoint);
+      const response = await fetch(endPoint, {
+        method: 'POST',
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nomeCompleto: nomeCompleto,
+          login: login,
+          senha: senha,
+          email: email,
+          funcao: funcao,
+        }),
+      });
+      console.log('Resposta recebida:', response);
+
+      const responseText = await response.text();
+      console.log('Texto da resposta:', responseText);
+      let data;
+      try {
+        data = responseText.startsWith("{") || responseText.startsWith("[")
+          ? JSON.parse(responseText)
+          : responseText;
+      } catch (jsonError) {
+        console.error('Erro ao processar a resposta como JSON:', jsonError);
+        throw new Error('Erro ao processar a resposta como JSON:' + jsonError);
+      }
+
+      console.log('Response status:', response.status);
+      console.log('Response body:', responseText);
+
+      if (response.ok) {
+        const json = JSON.parse(responseText);
+
+        const dados = {
+          nomeCompleto: json.nomeCompleto,
+          login: json.login,
+          senha: json.senha,
+          email: json.email,
+          funcao: json.funcao,
+        };
+
+        setNomeCompleto(dados.nomeCompleto);
+        setEmail(dados.email);
+        setLogin(dados.login);
+        setSenha(dados.senha);
+        setFuncao(dados.funcao);
+
+        Alert.alert("Sucesso", "Conta registrada com sucesso", [
+          { text: "OK", onPress: () => navigation.navigate("Login") }
+        ], { cancelable: false });
+
+      } else {
+        throw new Error('Erro ao fazer o cadastro');
+      }
+
+    } catch (error) {
+      console.error('Erro:', error);
+      console.error('Erro durante a requisição:', error);
+
+      setMensagem('Erro ao fazer o cadastro');
     }
   };
 

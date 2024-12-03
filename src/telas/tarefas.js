@@ -1,12 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NativeBaseProvider, Box, Button, Text, VStack, Input, Select } from 'native-base';
 import { useTarefa } from './contextApi'; // Ajuste o caminho conforme necessário
-
-const tecnicos = [
-  { id: '1', nome: 'Técnico 1' },
-  { id: '2', nome: 'Técnico 2' },
-  { id: '3', nome: 'Técnico 3' },
-];
 
 export default function Tarefa({ navigation }) {
   const { adicionarTarefa } = useTarefa();
@@ -17,9 +11,23 @@ export default function Tarefa({ navigation }) {
   const [dataLimite, setDataLimite] = useState('');
   const [observacao, setObservacao] = useState('');
   const [status, setStatus] = useState('pendente');
+  const [tecnicos, setTecnicos] = useState([]);
 
-  const handleAdicionarTarefa = () => {
-    // Verifica se todos os campos obrigatórios estão preenchidos
+  useEffect(() => {
+    const fetchTecnicos = async () => {
+      try {
+        const response = await fetch('http://localhost:8080//tecnicos');
+        const data = await response.json();
+        setTecnicos(data);
+      } catch (error) {
+        console.error('Erro ao buscar técnicos:', error);
+      }
+    };
+
+    fetchTecnicos();
+  }, []);
+
+  const handleAdicionarTarefa = async () => {
     if (!numeroContrato || !cidade || !tecnico || !supervisor || !dataLimite) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
@@ -35,8 +43,24 @@ export default function Tarefa({ navigation }) {
       status,
     };
 
-    adicionarTarefa(novaTarefa); // Adiciona a nova tarefa ao contexto
-    navigation.goBack(); // Volta para a lista de tarefas
+    try {
+      const response = await fetch('http://localhost:8080/tarefa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(novaTarefa),
+      });
+
+      if (response.ok) {
+        adicionarTarefa(novaTarefa);
+        navigation.goBack();
+      } else {
+        alert('Erro ao adicionar tarefa.');
+      }
+    } catch (error) {
+      alert('Erro ao conectar com a API.');
+    }
   };
 
   return (
@@ -98,4 +122,4 @@ export default function Tarefa({ navigation }) {
       </Box>
     </NativeBaseProvider>
   );
-} 
+}
