@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { NativeBaseProvider, Box, Input, Button, Text, VStack } from 'native-base';
+import { Alert } from 'react-native';
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mensagem, setMensagem] = useState('');
 
   const handleLogin = async () => {
     if (email === 'root' && senha === 'root') {
@@ -13,7 +15,7 @@ export default function Login({ navigation }) {
 
     if (email && senha) {
       try {
-        const response = await fetch('URL_DA_SUA_API', {
+        const response = await fetch('http://192.168.0.149:8080/login', { // Substitua pela URL correta da sua API
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -25,20 +27,32 @@ export default function Login({ navigation }) {
         });
 
         if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            navigation.navigate('Listas'); // Redireciona para a tela de listas
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.indexOf('application/json') !== -1) {
+            const data = await response.json();
+            if (data.success) {
+              navigation.navigate('Listas'); // Redireciona para a tela de listas
+            } else {
+              setMensagem(data.message || 'Login inválido');
+              Alert.alert('Erro', data.message || 'Login inválido');
+            }
           } else {
-            console.log('Login inválido');
+            setMensagem('Resposta inesperada do servidor');
+            Alert.alert('Erro', 'Resposta inesperada do servidor');
           }
         } else {
-          console.log('Erro ao realizar login');
+          const errorData = await response.json();
+          setMensagem(errorData.message || 'Erro ao realizar login');
+          Alert.alert('Erro', errorData.message || 'Erro ao realizar login');
         }
       } catch (error) {
-        console.log('Erro ao conectar com a API');
+        console.log('Erro ao conectar com a API', error);
+        setMensagem('Erro ao conectar com a API');
+        Alert.alert('Erro', 'Erro ao conectar com a API');
       }
     } else {
-      console.log('Por favor, preencha todos os campos');
+      setMensagem('Por favor, preencha todos os campos');
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
     }
   };
 
@@ -67,6 +81,11 @@ export default function Login({ navigation }) {
             onChangeText={setSenha}
           />
           <Button onPress={handleLogin}>Entrar</Button>
+          {mensagem ? (
+            <Text mt={4} color={mensagem.includes('sucesso') ? 'green.500' : 'red.500'}>
+              {mensagem}
+            </Text>
+          ) : null}
           <Text 
             onPress={() => console.log('Redirecionar para recuperação de senha')} 
             color="blue.500"

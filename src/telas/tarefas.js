@@ -16,7 +16,7 @@ export default function Tarefa({ navigation }) {
   useEffect(() => {
     const fetchTecnicos = async () => {
       try {
-        const response = await fetch('http://localhost:8080//tecnicos');
+        const response = await fetch('http://192.168.0.149:8080/cadastros/tecnicos');
         const data = await response.json();
         setTecnicos(data);
       } catch (error) {
@@ -32,35 +32,53 @@ export default function Tarefa({ navigation }) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-
+  
     const novaTarefa = {
-      numeroContrato,
+      numeroContrato: parseInt(numeroContrato, 10), // Certifique-se de que é um número
       cidade,
       tecnico,
       supervisor,
-      dataLimite,
+      dataFinal: dataLimite,
       observacao,
-      status,
+      status: status === 'pendente' ? false : true, // Converte para booleano
     };
-
+  
+    console.log('Enviando nova tarefa:', novaTarefa); // Log para verificar os dados enviados
+  
     try {
-      const response = await fetch('http://localhost:8080/tarefa', {
+      const response = await fetch('http://192.168.0.149:8080/tarefa', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(novaTarefa),
       });
-
+  
+      console.log('Resposta da API:', response); // Log para verificar a resposta da API
+  
       if (response.ok) {
+        // Se a resposta não for JSON, não tente fazer o parse
+        const responseText = await response.text();
+        console.log('Resposta da API (texto):', responseText); // Log para verificar a resposta da API como texto
         adicionarTarefa(novaTarefa);
         navigation.goBack();
       } else {
+        const errorData = await response.json();
+        console.error('Erro ao adicionar tarefa:', errorData);
         alert('Erro ao adicionar tarefa.');
       }
     } catch (error) {
+      console.error('Erro ao conectar com a API:', error);
       alert('Erro ao conectar com a API.');
     }
+  };
+
+  const formatarData = (data) => {
+    const dataFormatada = data.replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '$1/$2')
+      .replace(/(\d{2})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d)/, '$1');
+    setDataLimite(dataFormatada);
   };
 
   return (
@@ -87,8 +105,8 @@ export default function Tarefa({ navigation }) {
             onValueChange={setTecnico}
             isRequired
           >
-            {tecnicos.map((tec) => (
-              <Select.Item key={tec.id} label={tec.nome} value={tec.id} />
+            {Array.isArray(tecnicos) && tecnicos.map((tec, index) => (
+              <Select.Item key={index} label={tec.nomeCompleto} value={tec.nomeCompleto} />
             ))}
           </Select>
           <Input 
@@ -100,7 +118,7 @@ export default function Tarefa({ navigation }) {
           <Input 
             placeholder="Data Limite" 
             value={dataLimite} 
-            onChangeText={setDataLimite} 
+            onChangeText={formatarData} 
             isRequired 
           />
           <Input 
