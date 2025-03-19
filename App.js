@@ -8,7 +8,7 @@ import Login from './src/telas/login';
 import Cadastro from './src/telas/cadastro';
 import Listas from './src/telas/listas'; // Certifique-se de que o caminho está correto
 import Tarefas from './src/telas/tarefas'; // Certifique-se de que o caminho está correto
-
+import Dashboard from './src/telas/Dashboard';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -20,6 +20,7 @@ export default function App() {
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Cadastro" component={Cadastro} />
+            <Stack.Screen name='Dashboard' component={Dashboard}/>
             <Stack.Screen name="Listas" component={Listas} />
             <Stack.Screen name="Tarefas" component={Tarefas} />
           </Stack.Navigator>

@@ -33,7 +33,7 @@ export default function Login({ navigation }) {
           if (contentType && contentType.indexOf('application/json') !== -1) {
             const data = await response.json();
             if (data.success) {
-              navigation.navigate('Listas'); // Redireciona para a tela de listas
+              navigation.navigate('Dashboard'); // Redireciona para o Dashboard
             } else {
               setMensagem(data.message || 'Login inválido');
               Alert.alert('Erro', data.message || 'Login inválido');
@@ -42,6 +42,7 @@ export default function Login({ navigation }) {
             setMensagem('Resposta inesperada do servidor');
             Alert.alert('Erro', 'Resposta inesperada do servidor');
           }
+        
         } else {
           const errorData = await response.json();
           setMensagem(errorData.message || 'Erro ao realizar login');
