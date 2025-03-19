@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NativeBaseProvider, Box, Input, Button, Text, VStack } from 'native-base';
 import { Alert } from 'react-native';
+import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
+
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
@@ -15,7 +17,7 @@ export default function Login({ navigation }) {
 
     if (email && senha) {
       try {
-        const response = await fetch('http://192.168.0.149:8080/login', { // Substitua pela URL correta da sua API
+        const response = await fetch(`${API_BASE_URL}/login`, { // Substitua pela URL correta da sua API
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

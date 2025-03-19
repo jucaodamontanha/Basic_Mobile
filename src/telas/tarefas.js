@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NativeBaseProvider, Box, Button, Text, VStack, Input, Select } from 'native-base';
 import { useTarefa } from './contextApi'; // Ajuste o caminho conforme necessário
+import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
 
 export default function Tarefa({ navigation }) {
   const { adicionarTarefa } = useTarefa();
@@ -12,11 +13,12 @@ export default function Tarefa({ navigation }) {
   const [observacao, setObservacao] = useState('');
   const [status, setStatus] = useState('pendente');
   const [tecnicos, setTecnicos] = useState([]);
+  const [supervisores, setSupervisores] = useState([]); // Novo estado para supervisores
 
   useEffect(() => {
     const fetchTecnicos = async () => {
       try {
-        const response = await fetch('http://192.168.0.149:8080/cadastros/tecnicos');
+        const response = await fetch(`${API_BASE_URL}/cadastros/tecnicos`);
         const data = await response.json();
         setTecnicos(data);
       } catch (error) {
@@ -24,7 +26,18 @@ export default function Tarefa({ navigation }) {
       }
     };
 
+    const fetchSupervisores = async () => { // Função para buscar supervisores
+      try {
+        const response = await fetch(`${API_BASE_URL}/cadastros/supervisores`);
+        const data = await response.json();
+        setSupervisores(data);
+      } catch (error) {
+        console.error('Erro ao buscar supervisores:', error);
+      }
+    };
+
     fetchTecnicos();
+    fetchSupervisores(); // Chama a função para buscar supervisores
   }, []);
 
   const handleAdicionarTarefa = async () => {
@@ -34,19 +47,17 @@ export default function Tarefa({ navigation }) {
     }
   
     const novaTarefa = {
-      numeroContrato: parseInt(numeroContrato, 10), // Certifique-se de que é um número
+      numeroContrato: parseInt(numeroContrato, 10),
       cidade,
       tecnico,
       supervisor,
       dataFinal: dataLimite,
       observacao,
-      status: status === 'pendente' ? false : true, // Converte para booleano
+      status: status === 'pendente' ? false : true,
     };
   
-    console.log('Enviando nova tarefa:', novaTarefa); // Log para verificar os dados enviados
-  
     try {
-      const response = await fetch('http://192.168.0.149:8080/tarefa', {
+      const response = await fetch(`${API_BASE_URL}/tarefa`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,12 +65,7 @@ export default function Tarefa({ navigation }) {
         body: JSON.stringify(novaTarefa),
       });
   
-      console.log('Resposta da API:', response); // Log para verificar a resposta da API
-  
       if (response.ok) {
-        // Se a resposta não for JSON, não tente fazer o parse
-        const responseText = await response.text();
-        console.log('Resposta da API (texto):', responseText); // Log para verificar a resposta da API como texto
         adicionarTarefa(novaTarefa);
         navigation.goBack();
       } else {
@@ -109,12 +115,17 @@ export default function Tarefa({ navigation }) {
               <Select.Item key={index} label={tec.nomeCompleto} value={tec.nomeCompleto} />
             ))}
           </Select>
-          <Input 
+          <Select 
+            selectedValue={supervisor} 
+            minWidth="200" 
             placeholder="Supervisor" 
-            value={supervisor} 
-            onChangeText={setSupervisor} 
-            isRequired 
-          />
+            onValueChange={setSupervisor}
+            isRequired
+          >
+            {Array.isArray(supervisores) && supervisores.map((sup, index) => (
+              <Select.Item key={index} label={sup.nomeCompleto} value={sup.nomeCompleto} />
+            ))}
+          </Select>
           <Input 
             placeholder="Data Limite" 
             value={dataLimite} 

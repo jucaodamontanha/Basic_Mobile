@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { NativeBaseProvider, Box, Button, Text, FlatList, Icon, Select, VStack, Spinner, Accordion, HStack } from 'native-base';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
+
 
 export default function Listas() {
   const [tarefas, setTarefas] = useState([]);
@@ -23,9 +25,8 @@ export default function Listas() {
   const fetchTarefas = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.0.149:8080/tarefas');
+      const response = await fetch(`${API_BASE_URL}/tarefas`); // Usa o endereço centralizado
       const data = await response.json();
-      console.log(data); // Adicione este console.log para verificar os dados
       setTarefas(data);
       atualizarOpcoesFiltros(data);
     } catch (error) {
@@ -59,7 +60,7 @@ export default function Listas() {
     console.log('Atualizando status da tarefa:', tarefa); // Adicione este log
 
     try {
-      const response = await fetch(`http://192.168.0.149:8080/tarefas/${tarefa.id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/tarefas/${tarefa.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -106,9 +107,11 @@ export default function Listas() {
       <Text>Data Limite: {item.dataFinal}</Text>
       <Text>Observação: {item.observacao}</Text>
       <Text>Status: {item.status ? 'Concluído' : 'Pendente'}</Text>
-      <Button onPress={() => toggleStatus(index)} mt={2}>
-        Mudar Status
-      </Button>
+      {!item.status && ( // Exibe o botão apenas se o status for "Pendente"
+        <Button onPress={() => toggleStatus(index)} mt={2}>
+          Mudar Status
+        </Button>
+      )}
     </Box>
   );
 

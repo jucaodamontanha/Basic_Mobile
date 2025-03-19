@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { Alert } from 'react-native';
+import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
 
 const api = axios.create({
-  baseURL: 'http://192.168.0.111:8080', // Verifique se o IP está correto
+  baseURL: API_BASE_URL, // Usa o endereço centralizado
 });
 
 export async function fetchCadastro({ nomeCompleto, login, senha, email, funcao, navigation }) {
