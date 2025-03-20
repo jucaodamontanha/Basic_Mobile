@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
 
 
+
 export default function Listas() {
   const [tarefas, setTarefas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -120,16 +121,18 @@ export default function Listas() {
   return (
     <NativeBaseProvider>
       <Box safeArea p="2" py="8" w="90%" mx="auto">
-        <HStack justifyContent="space-between" alignItems="center" mb={4}>
-          <Text fontSize="2xl">Lista de Tarefas</Text>
-          <Button
-            onPress={() => navigation.navigate('Tarefas')}
-            size="sm"
-            colorScheme="teal"
-            borderRadius="full"
-            leftIcon={<Icon as={AntDesign} name="plus" size="sm" />}
-          />
-        </HStack>
+      <HStack justifyContent="space-between" alignItems="center" mb={4}>
+  <Text fontSize="2xl">Lista de Tarefas</Text>
+  <Button
+    onPress={() => navigation.navigate('Tarefas')}
+    size="sm"
+    colorScheme="teal"
+    borderRadius="full"
+    leftIcon={<Icon as={AntDesign} name="plus" size="sm" color="white" />}
+  >
+    
+  </Button>
+</HStack>
         <Accordion allowMultiple>
           <Accordion.Item>
             <Accordion.Summary _expanded={{ backgroundColor: "gray.200" }}>

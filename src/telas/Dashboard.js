@@ -22,6 +22,12 @@ export default function Dashboard() {
           >
             Lista de Tarefas
           </Button>
+          <Button
+            colorScheme="gray"
+            onPress={() => navigation.navigate('OrdemServico')} // Navega para a tela de criar tarefa
+          >
+            Gerar Ordem de Serviço
+          </Button>
         </VStack>
       </Box>
     </NativeBaseProvider>
