@@ -1,238 +1,204 @@
-import React, { useRef, useState } from 'react';
-import { NativeBaseProvider, Box, Input, Button, VStack, Text, Select, TextArea, ScrollView } from 'native-base';
-import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { WebView } from 'react-native-webview';
+import React, { useRef, useState } from "react";
+import {
+  NativeBaseProvider,
+  Box,
+  Button,
+  VStack,
+  Text,
+  ScrollView,
+  Image,
+  Input,
+  Select,
+  TextArea,
+} from "native-base";
+import * as ImagePicker from "expo-image-picker"; // Importa o ImagePicker
+import Signature from "react-native-signature-canvas";
 
 export default function OrdemServico() {
-  const [nomeCliente, setNomeCliente] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [numero, setNumero] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [numeroContrato, setNumeroContrato] = useState('');
-  const [emailCliente, setEmailCliente] = useState('');
-  const [nomeAtendente, setNomeAtendente] = useState('');
-  const [tipoAtendimento, setTipoAtendimento] = useState('');
-  const [supervisor, setSupervisor] = useState('');
-  const [observacao, setObservacao] = useState('');
-  const [fotos, setFotos] = useState([]);
-  const [assinatura, setAssinatura] = useState(null);
-  const [scrollEnabled, setScrollEnabled] = useState(true); // Estado para controlar a rolagem
+  const [assinatura, setAssinatura] = useState(null); // Armazena a assinatura
+  const [assinaturaSalva, setAssinaturaSalva] = useState(false); // Controla se a assinatura foi salva
+  const [scrollEnabled, setScrollEnabled] = useState(true); // Controle do scroll
+  const [fotos, setFotos] = useState([]); // Estado para armazenar as fotos
+  const signatureRef = useRef(null);
 
-  const webViewRef = useRef(null);
+  const handleSignature = (signature) => {
+    setAssinatura(signature); // Salva a assinatura como Base64
+    console.log("Assinatura recebida:", signature);
+  };
 
-  const handleSalvarOrdem = () => {
-    if (!nomeCliente || !endereco || !numero || !cidade || !numeroContrato || !emailCliente || !nomeAtendente || !tipoAtendimento || !supervisor) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
-      return;
+  const handleClearSignature = () => {
+    signatureRef.current.clearSignature(); // Limpa a assinatura
+    setAssinatura(null);
+    setAssinaturaSalva(false); // Permite reativar o campo de assinatura
+  };
+
+  const handleSalvarAssinatura = () => {
+    if (assinatura) {
+      setAssinaturaSalva(true); // Desativa o campo de assinatura
+      alert("Assinatura salva com sucesso!");
+    } else {
+      alert("Por favor, assine antes de salvar.");
     }
-
-    const ordemServico = {
-      nomeCliente,
-      endereco,
-      numero,
-      cidade,
-      numeroContrato,
-      emailCliente,
-      nomeAtendente,
-      tipoAtendimento,
-      supervisor,
-      observacao,
-      fotos,
-      assinatura,
-    };
-
-    console.log('Ordem de Serviço:', ordemServico);
-    Alert.alert('Sucesso', 'Ordem de serviço salva com sucesso!');
   };
 
   const handleAdicionarFoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permissão para acessar a galeria é necessária!");
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.IMAGES], // Atualizado para usar MediaType
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
 
-    if (!result.canceled) {
-      setFotos([...fotos, result.uri]);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      setFotos((prevFotos) => [...prevFotos, uri]);
+      console.log("Foto adicionada:", uri);
+    } else {
+      console.log("Nenhuma foto foi selecionada.");
     }
   };
 
-  const handleSignature = (data) => {
-    setAssinatura(data); // Salva a assinatura como base64
-    Alert.alert('Sucesso', 'Assinatura salva com sucesso!');
+  const handleSalvarOrdem = () => {
+    console.log("Ordem de Serviço salva!");
+    console.log("Fotos adicionadas:", fotos);
+    alert("Ordem de Serviço salva com sucesso!");
   };
-
-  const handleClearSignature = () => {
-    webViewRef.current.postMessage('clear');
-  };
-
-  const handleSaveSignature = () => {
-    webViewRef.current.postMessage('save');
-  };
-  const signatureHTML = `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-      <style>
-        body, html {
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          overflow: hidden; /* Desativa a rolagem */
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .signature-pad {
-          border: 1px solid #000;
-          width: 100%;
-          height: 300px;
-        }
-      </style>
-    </head>
-    <body>
-      <canvas id="signature-pad" class="signature-pad"></canvas>
-      <script>
-        const canvas = document.getElementById('signature-pad');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = 300;
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        let drawing = false;
-
-        function startDrawing(event) {
-          drawing = true;
-          draw(event);
-        }
-
-        function stopDrawing() {
-          drawing = false;
-          ctx.beginPath();
-        }
-
-        function draw(event) {
-          if (!drawing) return;
-          const rect = canvas.getBoundingClientRect();
-          const x = (event.touches ? event.touches[0].clientX : event.clientX) - rect.left;
-          const y = (event.touches ? event.touches[0].clientY : event.clientY) - rect.top;
-
-          ctx.lineWidth = 2;
-          ctx.lineCap = 'round';
-          ctx.strokeStyle = 'black';
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mousemove', draw);
-
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchmove', draw);
-
-        function clearSignature() {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function saveSignature() {
-          const dataURL = canvas.toDataURL('image/png');
-          window.ReactNativeWebView.postMessage(dataURL);
-        }
-
-        window.addEventListener('message', (event) => {
-          if (event.data === 'clear') {
-            clearSignature();
-          } else if (event.data === 'save') {
-            saveSignature();
-          }
-        });
-      </script>
-    </body>
-  </html>
-`;
 
   return (
     <NativeBaseProvider>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={scrollEnabled}
       >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          scrollEnabled={scrollEnabled} // Controla a rolagem
-        >
-          <Box safeArea p="4">
-            <Text fontSize="2xl" mb="4">Criar Ordem de Serviço</Text>
-            <VStack space={4}>
-              <Input placeholder="Nome do Cliente" value={nomeCliente} onChangeText={setNomeCliente} isRequired />
-              <Input placeholder="Endereço" value={endereco} onChangeText={setEndereco} isRequired />
-              <Input placeholder="Número" value={numero} onChangeText={setNumero} isRequired />
-              <Input placeholder="Cidade" value={cidade} onChangeText={setCidade} isRequired />
-              <Input placeholder="Número do Contrato" value={numeroContrato} onChangeText={setNumeroContrato} isRequired />
-              <Input placeholder="Email do Cliente" value={emailCliente} onChangeText={setEmailCliente} isRequired />
-              <Input placeholder="Nome de Quem Atendeu" value={nomeAtendente} onChangeText={setNomeAtendente} isRequired />
-              <Select
-                selectedValue={tipoAtendimento}
-                minWidth="200"
-                placeholder="Tipo de Atendimento"
-                onValueChange={setTipoAtendimento}
-                isRequired
-              >
-                <Select.Item label="Instalação" value="instalacao" />
-                <Select.Item label="Manutenção" value="manutencao" />
-                <Select.Item label="Outro" value="outro" />
-              </Select>
-              <Input placeholder="Supervisor" value={supervisor} onChangeText={setSupervisor} isRequired />
-              <TextArea placeholder="Observação" value={observacao} onChangeText={setObservacao} />
+        <Box safeArea p="4">
+          <Text fontSize="2xl" mb="4">
+            Criar Ordem de Serviço
+          </Text>
+          <VStack space={4}>
+            {/* Campos de Entrada */}
+            <Input placeholder="Nome do Cliente" />
+            <Input placeholder="Endereço" />
+            <Input placeholder="Número" />
+            <Input placeholder="Cidade" />
+            <Input placeholder="Número do Contrato" />
+            <Input placeholder="Email do Cliente" />
+            <Input placeholder="Nome de Quem Atendeu" />
+            <Input placeholder="Supervisor" />
 
-              <Text fontSize="md" mt="4">Assinatura do Cliente:</Text>
+            {/* Campo de Seleção */}
+            <Select placeholder="Tipo de Atendimento">
+              <Select.Item label="Instalação" value="instalacao" />
+              <Select.Item label="Manutenção" value="manutencao" />
+              <Select.Item label="Outro" value="outro" />
+            </Select>
+
+            {/* Campo de Observação */}
+            <TextArea placeholder="Observação" />
+
+            {/* Campo de Assinatura */}
+            <Text fontSize="md" mt="4">
+              Assinatura do Cliente:
+            </Text>
+            {!assinaturaSalva ? (
               <Box height="300px" borderWidth={1} borderColor="gray.300">
-  <WebView
-    ref={webViewRef}
-    originWhitelist={['*']}
-    source={{ html: signatureHTML }}
-    onMessage={(event) => handleSignature(event.nativeEvent.data)}
-    style={{ height: 300 }}
-    onTouchStart={() => {
-      if (scrollEnabled) setScrollEnabled(false); // Atualiza apenas se necessário
-    }}
-    onTouchEnd={() => {
-      if (!scrollEnabled) setScrollEnabled(true); // Atualiza apenas se necessário
-    }}
-  />
-</Box>
-              <Button onPress={handleClearSignature} colorScheme="red" mt="2">
-                Limpar Assinatura
-              </Button>
-              <Button onPress={handleSaveSignature} colorScheme="blue" mt="2">
+                <Signature
+                  ref={signatureRef}
+                  onOK={handleSignature}
+                  descriptionText="Assine aqui"
+                  clearText="Limpar"
+                  confirmText="Salvar"
+                  webStyle={`
+                    .m-signature-pad {
+                      box-shadow: none; 
+                      border: none; 
+                    }
+                    .m-signature-pad--body {
+                      border: none;
+                    }
+                    .m-signature-pad--footer {
+                      display: none; 
+                      margin: 0px;
+                    }
+                    body, html {
+                      width: 100%; 
+                      height: 100%; 
+                      margin: 0; 
+                      padding: 0; 
+                      overflow: hidden;
+                    }
+                    canvas {
+                      width: 100%;
+                      height: 100%;
+                    }
+                  `}
+                  onBegin={() => setScrollEnabled(false)} // Desativa o scroll ao começar a desenhar
+                  onEnd={() => setScrollEnabled(true)} // Reativa o scroll ao terminar de desenhar
+                />
+              </Box>
+            ) : (
+              <Box mt="4" alignItems="center">
+                <Text fontSize="md" mb="2">
+                  Assinatura Salva:
+                </Text>
+                <Image
+                  source={{ uri: assinatura }}
+                  alt="Assinatura do Cliente"
+                  style={{
+                    width: 300,
+                    height: 150,
+                    borderWidth: 1,
+                    borderColor: "gray",
+                  }}
+                />
+              </Box>
+            )}
+
+            {!assinaturaSalva && (
+              <Button onPress={handleSalvarAssinatura} colorScheme="blue" mt="2">
                 Salvar Assinatura
               </Button>
+            )}
+            <Button onPress={handleClearSignature} colorScheme="red" mt="2">
+              Limpar Assinatura
+            </Button>
 
-              <Text fontSize="md" mt="4">Fotos do Atendimento:</Text>
-              <Button onPress={handleAdicionarFoto} colorScheme="blue">
-                Adicionar Foto
-              </Button>
-              {fotos.map((foto, index) => (
-                <Text key={index} mt="2">Foto {index + 1}: {foto}</Text>
-              ))}
+            {/* Exibição das Fotos Selecionadas */}
+            <Text fontSize="md" mt="4">
+              Fotos Adicionadas:
+            </Text>
+            {fotos.map((foto, index) => (
+              <Box key={index} mt="2">
+                <Image
+                  source={{ uri: foto }}
+                  alt={`Foto ${index + 1}`}
+                  style={{
+                    width: 300,
+                    height: 150,
+                    borderWidth: 1,
+                    borderColor: "gray",
+                    marginBottom: 8,
+                  }}
+                />
+                <Text>Foto {index + 1}</Text>
+              </Box>
+            ))}
 
-              <Button onPress={handleSalvarOrdem} colorScheme="green" mt="4">
-                Salvar Ordem de Serviço
-              </Button>
-            </VStack>
-          </Box>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            {/* Botões Adicionais */}
+            <Button onPress={handleAdicionarFoto} colorScheme="blue" mt="4">
+              Adicionar Foto
+            </Button>
+            <Button onPress={handleSalvarOrdem} colorScheme="green" mt="4">
+              Salvar Ordem de Serviço
+            </Button>
+          </VStack>
+        </Box>
+      </ScrollView>
     </NativeBaseProvider>
   );
 }
