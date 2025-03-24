@@ -11,14 +11,14 @@ import {
   Select,
   TextArea,
 } from "native-base";
-import * as ImagePicker from "expo-image-picker"; // Importa o ImagePicker
 import Signature from "react-native-signature-canvas";
+import * as ImagePicker from "expo-image-picker";
 
 export default function OrdemServico() {
   const [assinatura, setAssinatura] = useState(null); // Armazena a assinatura
   const [assinaturaSalva, setAssinaturaSalva] = useState(false); // Controla se a assinatura foi salva
   const [scrollEnabled, setScrollEnabled] = useState(true); // Controle do scroll
-  const [fotos, setFotos] = useState([]); // Estado para armazenar as fotos
+  const [fotos, setFotos] = useState([]); // Armazena as fotos adicionadas
   const signatureRef = useRef(null);
 
   const handleSignature = (signature) => {
@@ -61,12 +61,6 @@ export default function OrdemServico() {
     } else {
       console.log("Nenhuma foto foi selecionada.");
     }
-  };
-
-  const handleSalvarOrdem = () => {
-    console.log("Ordem de Serviço salva!");
-    console.log("Fotos adicionadas:", fotos);
-    alert("Ordem de Serviço salva com sucesso!");
   };
 
   return (
@@ -147,7 +141,7 @@ export default function OrdemServico() {
                   Assinatura Salva:
                 </Text>
                 <Image
-                  source={{ uri: assinatura }}
+                  source={{ uri: `data:image/png;base64,${assinatura}` }}
                   alt="Assinatura do Cliente"
                   style={{
                     width: 300,
@@ -164,9 +158,15 @@ export default function OrdemServico() {
                 Salvar Assinatura
               </Button>
             )}
-            <Button onPress={handleClearSignature} colorScheme="red" mt="2">
-              Limpar Assinatura
-            </Button>
+            {!assinaturaSalva && (
+              <Button
+                onPress={handleClearSignature}
+                colorScheme="red"
+                mt="2"
+              >
+                Limpar Assinatura
+              </Button>
+            )}
 
             {/* Exibição das Fotos Selecionadas */}
             <Text fontSize="md" mt="4">
@@ -192,9 +192,6 @@ export default function OrdemServico() {
             {/* Botões Adicionais */}
             <Button onPress={handleAdicionarFoto} colorScheme="blue" mt="4">
               Adicionar Foto
-            </Button>
-            <Button onPress={handleSalvarOrdem} colorScheme="green" mt="4">
-              Salvar Ordem de Serviço
             </Button>
           </VStack>
         </Box>
