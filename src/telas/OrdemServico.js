@@ -13,26 +13,40 @@ import {
 } from "native-base";
 import Signature from "react-native-signature-canvas";
 import * as ImagePicker from "expo-image-picker";
+import { API_BASE_URL } from "../telas/config"; // Importa a URL base do back-end
+import axios from "axios";
 
 export default function OrdemServico() {
-  const [assinatura, setAssinatura] = useState(null); // Armazena a assinatura
-  const [assinaturaSalva, setAssinaturaSalva] = useState(false); // Controla se a assinatura foi salva
-  const [scrollEnabled, setScrollEnabled] = useState(true); // Controle do scroll
-  const [fotos, setFotos] = useState([]); // Armazena as fotos adicionadas
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [numeroContrato, setNumeroContrato] = useState("");
+  const [emailCliente, setEmailCliente] = useState("");
+  const [nomeAtendente, setNomeAtendente] = useState("");
+  const [supervisor, setSupervisor] = useState("");
+  const [tipoAtendimento, setTipoAtendimento] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [assinatura, setAssinatura] = useState(null);
+  const [assinaturaSalva, setAssinaturaSalva] = useState(false);
+  const [fotos, setFotos] = useState([]);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
   const signatureRef = useRef(null);
 
+  // Captura a assinatura
   const handleSignature = (signature) => {
-    setAssinatura(signature); // Salva a assinatura como Base64
-    console.log("Assinatura recebida:", signature);
+    console.log("handleSignature chamado com assinatura:", signature);
+    if (signature) {
+      setAssinatura(signature); // Salva a assinatura como Base64
+      console.log("Assinatura capturada:", signature);
+    } else {
+      console.error("Nenhuma assinatura foi capturada.");
+    }
   };
 
-  const handleClearSignature = () => {
-    signatureRef.current.clearSignature(); // Limpa a assinatura
-    setAssinatura(null);
-    setAssinaturaSalva(false); // Permite reativar o campo de assinatura
-  };
-
+  // Salva a assinatura
   const handleSalvarAssinatura = () => {
+    console.log("Estado atual de assinatura no botão Salvar:", assinatura);
     if (assinatura) {
       setAssinaturaSalva(true); // Desativa o campo de assinatura
       alert("Assinatura salva com sucesso!");
@@ -41,25 +55,98 @@ export default function OrdemServico() {
     }
   };
 
+  // Limpa a assinatura
+  const handleClearSignature = () => {
+    signatureRef.current.clearSignature(); // Limpa o campo de assinatura
+    setAssinatura(null);
+    setAssinaturaSalva(false);
+    console.log("Assinatura limpa.");
+  };
+
+  // Adiciona uma foto
   const handleAdicionarFoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permissão para acessar a galeria é necessária!");
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("Permissão para acessar a galeria é necessária!");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const uri = result.assets[0].uri;
+        setFotos((prevFotos) => [...prevFotos, uri]);
+        console.log("Foto adicionada:", uri);
+      } else {
+        console.log("Nenhuma foto foi selecionada.");
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar foto:", error);
+      alert("Ocorreu um erro ao tentar acessar a galeria.");
+    }
+  };
+
+  // Envia a ordem de serviço
+  const handleSubmit = async () => {
+    // Validação dos campos obrigatórios
+    if (
+      !nomeCliente ||
+      !endereco ||
+      !numero ||
+      !cidade ||
+      !numeroContrato ||
+      !emailCliente ||
+      !nomeAtendente ||
+      !supervisor ||
+      !tipoAtendimento
+    ) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    const ordemDeServico = {
+      nomeCliente,
+      endereco,
+      numero: parseInt(numero, 10), // Converte para número
+      cidade,
+      numeroContrato: parseInt(numeroContrato, 10), // Converte para número
+      emailCliente,
+      nomeAtendente,
+      supervisor,
+      tipoAtendimento,
+      observacao,
+      assinatura,
+      fotos,
+    };
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      setFotos((prevFotos) => [...prevFotos, uri]);
-      console.log("Foto adicionada:", uri);
-    } else {
-      console.log("Nenhuma foto foi selecionada.");
+    console.log("Enviando ordem de serviço para:", `${API_BASE_URL}/os`);
+    console.log("Dados enviados:", ordemDeServico);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/os`, ordemDeServico, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        alert("Ordem de serviço criada com sucesso!");
+      } else {
+        console.error("Erro no servidor:", response.data);
+        alert("Erro ao criar ordem de serviço.");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar ordem de serviço:", error);
+      alert(
+        "Erro ao enviar ordem de serviço. Verifique sua conexão com a internet."
+      );
     }
   };
 
@@ -76,24 +163,64 @@ export default function OrdemServico() {
           </Text>
           <VStack space={4}>
             {/* Campos de Entrada */}
-            <Input placeholder="Nome do Cliente" />
-            <Input placeholder="Endereço" />
-            <Input placeholder="Número" />
-            <Input placeholder="Cidade" />
-            <Input placeholder="Número do Contrato" />
-            <Input placeholder="Email do Cliente" />
-            <Input placeholder="Nome de Quem Atendeu" />
-            <Input placeholder="Supervisor" />
+            <Input
+              placeholder="Nome do Cliente"
+              value={nomeCliente}
+              onChangeText={setNomeCliente}
+            />
+            <Input
+              placeholder="Endereço"
+              value={endereco}
+              onChangeText={setEndereco}
+            />
+            <Input
+              placeholder="Número"
+              value={numero}
+              onChangeText={setNumero}
+            />
+            <Input
+              placeholder="Cidade"
+              value={cidade}
+              onChangeText={setCidade}
+            />
+            <Input
+              placeholder="Número do Contrato"
+              value={numeroContrato}
+              onChangeText={setNumeroContrato}
+            />
+            <Input
+              placeholder="Email do Cliente"
+              value={emailCliente}
+              onChangeText={setEmailCliente}
+            />
+            <Input
+              placeholder="Nome de Quem Atendeu"
+              value={nomeAtendente}
+              onChangeText={setNomeAtendente}
+            />
+            <Input
+              placeholder="Supervisor"
+              value={supervisor}
+              onChangeText={setSupervisor}
+            />
 
             {/* Campo de Seleção */}
-            <Select placeholder="Tipo de Atendimento">
+            <Select
+              placeholder="Tipo de Atendimento"
+              selectedValue={tipoAtendimento}
+              onValueChange={(value) => setTipoAtendimento(value)}
+            >
               <Select.Item label="Instalação" value="instalacao" />
               <Select.Item label="Manutenção" value="manutencao" />
               <Select.Item label="Outro" value="outro" />
             </Select>
 
             {/* Campo de Observação */}
-            <TextArea placeholder="Observação" />
+            <TextArea
+              placeholder="Observação"
+              value={observacao}
+              onChangeText={setObservacao}
+            />
 
             {/* Campo de Assinatura */}
             <Text fontSize="md" mt="4">
@@ -131,8 +258,8 @@ export default function OrdemServico() {
                       height: 100%;
                     }
                   `}
-                  onBegin={() => setScrollEnabled(false)} // Desativa o scroll ao começar a desenhar
-                  onEnd={() => setScrollEnabled(true)} // Reativa o scroll ao terminar de desenhar
+                  onBegin={() => setScrollEnabled(false)}
+                  onEnd={() => setScrollEnabled(true)}
                 />
               </Box>
             ) : (
@@ -154,16 +281,16 @@ export default function OrdemServico() {
             )}
 
             {!assinaturaSalva && (
-              <Button onPress={handleSalvarAssinatura} colorScheme="blue" mt="2">
+              <Button
+                onPress={handleSalvarAssinatura}
+                colorScheme="blue"
+                mt="2"
+              >
                 Salvar Assinatura
               </Button>
             )}
             {!assinaturaSalva && (
-              <Button
-                onPress={handleClearSignature}
-                colorScheme="red"
-                mt="2"
-              >
+              <Button onPress={handleClearSignature} colorScheme="red" mt="2">
                 Limpar Assinatura
               </Button>
             )}
@@ -192,6 +319,9 @@ export default function OrdemServico() {
             {/* Botões Adicionais */}
             <Button onPress={handleAdicionarFoto} colorScheme="blue" mt="4">
               Adicionar Foto
+            </Button>
+            <Button onPress={handleSubmit} colorScheme="green" mt="4">
+              Enviar Ordem de Serviço
             </Button>
           </VStack>
         </Box>

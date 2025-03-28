@@ -19,10 +19,10 @@ export default function App() {
         <NavigationContainer>
           <StatusBar style="auto" />
           <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="OrdemServico" component={OrdemServico} />
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Cadastro" component={Cadastro} />
             <Stack.Screen name='Dashboard' component={Dashboard}/>
-           <Stack.Screen name="OrdemServico" component={OrdemServico} />
             <Stack.Screen name="Listas" component={Listas} />
             <Stack.Screen name="Tarefas" component={Tarefas} />
           </Stack.Navigator>
