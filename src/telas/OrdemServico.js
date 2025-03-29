@@ -16,7 +16,7 @@ import Signature from "react-native-signature-canvas";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import * as ImageManipulator from "expo-image-manipulator";
-import API_BASE_URL from './config'; // Importação correta da constante
+import API_BASE_URL from './config'; // URL da API
 
 export default function OrdemServico({ navigation }) {
   const [nomeCliente, setNomeCliente] = useState("");
@@ -33,7 +33,7 @@ export default function OrdemServico({ navigation }) {
   const [assinaturaSalva, setAssinaturaSalva] = useState(false);
   const [fotos, setFotos] = useState([]);
   const [scrollEnabled, setScrollEnabled] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // Estado para controlar o carregamento
+  const [isLoading, setIsLoading] = useState(false); // Estado para carregamento
   const signatureRef = useRef(null);
 
   const handleSignature = (signature) => {
@@ -67,7 +67,11 @@ export default function OrdemServico({ navigation }) {
 
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
-      const resizedImage = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 800 } }], { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG });
+      const resizedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 800 } }], // Redimensiona para largura máxima de 800px
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compacta para 70% da qualidade
+      );
       setFotos((prevFotos) => [...prevFotos, resizedImage.uri]);
     }
   };
@@ -79,6 +83,32 @@ export default function OrdemServico({ navigation }) {
     }
 
     setIsLoading(true); // Ativa o estado de carregamento
+
+    // Calcula o tamanho total dos arquivos
+    let tamanhoTotal = 0;
+
+    // Calcula o tamanho da assinatura (se existir)
+    if (assinatura) {
+      const assinaturaSize = new Blob([assinatura]).size; // Converte a assinatura Base64 para Blob
+      tamanhoTotal += assinaturaSize;
+    }
+
+    // Calcula o tamanho das fotos
+    for (const fotoUri of fotos) {
+      const response = await fetch(fotoUri);
+      const blob = await response.blob();
+      tamanhoTotal += blob.size;
+    }
+
+    console.log(`Tamanho total dos arquivos: ${(tamanhoTotal / (1024 * 1024)).toFixed(2)} MB`);
+
+    // Verifica se o tamanho total excede um limite (por exemplo, 10 MB)
+    const limiteMB = 10;
+    if (tamanhoTotal > limiteMB * 1024 * 1024) {
+      alert(`O tamanho total dos arquivos excede o limite de ${limiteMB} MB.`);
+      setIsLoading(false);
+      return;
+    }
 
     const formData = new FormData();
     formData.append(
@@ -212,6 +242,13 @@ export default function OrdemServico({ navigation }) {
                     style={{ width: 100, height: 100, marginBottom: 8 }}
                   />
                 ))}
+                <Button
+                  onPress={() => setFotos([])} // Limpa todas as fotos selecionadas
+                  colorScheme="red"
+                  mt="2"
+                >
+                  Limpar Fotos
+                </Button>
               </Box>
             )}
 

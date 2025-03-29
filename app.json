@@ -30,6 +30,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "expo": {
+    "name": "Basic",
+    "slug": "Basic",
+    "android": {
+      "package": "com.lineker.basic"
+    }
+  },
     "extra": {
       "eas": {
         "projectId": "f4ccf752-18d9-4f4e-aeeb-8648356c51d9"
