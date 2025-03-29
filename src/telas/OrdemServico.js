@@ -10,6 +10,7 @@ import {
   Input,
   Select,
   TextArea,
+  Spinner,
 } from "native-base";
 import Signature from "react-native-signature-canvas";
 import * as ImagePicker from "expo-image-picker";
@@ -17,7 +18,7 @@ import axios from "axios";
 import * as ImageManipulator from "expo-image-manipulator";
 import API_BASE_URL from './config'; // Importação correta da constante
 
-export default function OrdemServico() {
+export default function OrdemServico({ navigation }) {
   const [nomeCliente, setNomeCliente] = useState("");
   const [endereco, setEndereco] = useState("");
   const [numero, setNumero] = useState("");
@@ -31,26 +32,17 @@ export default function OrdemServico() {
   const [assinatura, setAssinatura] = useState(null);
   const [assinaturaSalva, setAssinaturaSalva] = useState(false);
   const [fotos, setFotos] = useState([]);
-  const [scrollEnabled, setScrollEnabled] = useState(true); // Adicionado o estado scrollEnabled
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Estado para controlar o carregamento
   const signatureRef = useRef(null);
 
   const handleSignature = (signature) => {
-    console.log("handleSignature chamado com assinatura:", signature);
     if (signature) {
-      setAssinatura(signature);
-      console.log("Assinatura capturada:", signature);
-    } else {
-      console.error("Nenhuma assinatura foi capturada.");
-    }
-  };
-
-  const handleSalvarAssinatura = () => {
-    console.log("Estado atual de assinatura no botão Salvar:", assinatura);
-    if (assinatura) {
-      setAssinaturaSalva(true);
+      setAssinatura(signature); // Salva a assinatura em Base64
+      setAssinaturaSalva(true); // Marca a assinatura como salva
       alert("Assinatura salva com sucesso!");
     } else {
-      alert("Por favor, assine antes de salvar.");
+      alert("Por favor, desenhe sua assinatura antes de salvar.");
     }
   };
 
@@ -58,7 +50,6 @@ export default function OrdemServico() {
     signatureRef.current.clearSignature();
     setAssinatura(null);
     setAssinaturaSalva(false);
-    console.log("Assinatura limpa.");
   };
 
   const handleAdicionarFoto = async () => {
@@ -86,7 +77,9 @@ export default function OrdemServico() {
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
-  
+
+    setIsLoading(true); // Ativa o estado de carregamento
+
     const formData = new FormData();
     formData.append(
       "dados",
@@ -104,7 +97,7 @@ export default function OrdemServico() {
         assinatura, // Assinatura em Base64
       })
     );
-  
+
     fotos.forEach((fotoUri, index) => {
       formData.append("fotos", {
         uri: fotoUri,
@@ -112,16 +105,15 @@ export default function OrdemServico() {
         type: "image/jpeg",
       });
     });
-  
-    console.log("Dados enviados:", formData);
-  
+
     try {
       const response = await axios.post(`${API_BASE_URL}/os`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-  
+
       if (response.status === 200) {
         alert("Ordem de serviço criada com sucesso!");
+        navigation.navigate("Dashboard"); // Redireciona para o dashboard
       } else {
         console.error("Erro no servidor:", response.data);
         alert("Erro ao criar ordem de serviço.");
@@ -129,14 +121,17 @@ export default function OrdemServico() {
     } catch (error) {
       console.error("Erro ao enviar ordem de serviço:", error.message);
       alert("Erro ao enviar ordem de serviço. Verifique sua conexão com a internet.");
+    } finally {
+      setIsLoading(false); // Desativa o estado de carregamento
     }
   };
+
   return (
     <NativeBaseProvider>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={scrollEnabled} // Controla o scroll com base no estado
+        scrollEnabled={scrollEnabled}
       >
         <Box safeArea p="4">
           <Text fontSize="2xl" mb="4">Criar Ordem de Serviço</Text>
@@ -155,7 +150,7 @@ export default function OrdemServico() {
               <Select.Item label="Outro" value="outro" />
             </Select>
             <TextArea placeholder="Observação" value={observacao} onChangeText={setObservacao} />
-            
+
             <Text fontSize="md" mt="4">Assinatura do Cliente:</Text>
             {!assinaturaSalva ? (
               <Box height="300px" borderWidth={1} borderColor="gray.300">
@@ -165,7 +160,18 @@ export default function OrdemServico() {
                   descriptionText="Assine aqui"
                   clearText="Limpar"
                   confirmText="Salvar"
-                  webStyle={`...`}
+                  webStyle={`
+                    .m-signature-pad {
+                      box-shadow: none;
+                      border: 1px solid #ccc;
+                    }
+                    .m-signature-pad--body {
+                      border: none;
+                    }
+                    .m-signature-pad--footer {
+                      display: none;
+                    }
+                  `}
                   onBegin={() => setScrollEnabled(false)} // Desativa o scroll ao começar a desenhar
                   onEnd={() => setScrollEnabled(true)} // Reativa o scroll ao terminar de desenhar
                 />
@@ -182,10 +188,10 @@ export default function OrdemServico() {
                 )}
               </Box>
             )}
-            
+
             {!assinaturaSalva && (
               <>
-                <Button onPress={handleSalvarAssinatura} colorScheme="blue" mt="2">
+                <Button onPress={() => signatureRef.current.readSignature()} colorScheme="blue" mt="2">
                   Salvar Assinatura
                 </Button>
                 <Button onPress={handleClearSignature} colorScheme="red" mt="2">
@@ -195,7 +201,25 @@ export default function OrdemServico() {
             )}
 
             <Button onPress={handleAdicionarFoto} colorScheme="blue" mt="4">Adicionar Foto</Button>
-            <Button onPress={handleSubmit} colorScheme="green" mt="4">Enviar Ordem de Serviço</Button>
+            {fotos.length > 0 && (
+              <Box mt="4">
+                <Text fontSize="md" mb="2">Fotos Selecionadas:</Text>
+                {fotos.map((fotoUri, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: fotoUri }}
+                    alt={`Foto ${index + 1}`}
+                    style={{ width: 100, height: 100, marginBottom: 8 }}
+                  />
+                ))}
+              </Box>
+            )}
+
+            {isLoading ? (
+              <Spinner color="blue.500" size="lg" mt="4" />
+            ) : (
+              <Button onPress={handleSubmit} colorScheme="green" mt="4">Enviar Ordem de Serviço</Button>
+            )}
           </VStack>
         </Box>
       </ScrollView>
