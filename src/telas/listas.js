@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { NativeBaseProvider, Box, Button, Text, FlatList, Icon, Select, VStack, Spinner, Accordion, HStack } from 'native-base';
-import { AntDesign } from '@expo/vector-icons';
+import { View, Text, Button, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
-
-
 
 export default function Listas() {
   const [tarefas, setTarefas] = useState([]);
@@ -100,7 +98,7 @@ export default function Listas() {
   };
 
   const renderItem = ({ item, index }) => (
-    <Box borderWidth={1} borderColor="gray.300" p={4} borderRadius="md" mb={2}>
+    <View style={{ padding: 10, borderBottomWidth: 1, borderColor: 'gray', marginBottom: 10 }}>
       <Text>Número do Contrato: {item.numeroContrato}</Text>
       <Text>Cidade: {item.cidade}</Text>
       <Text>Técnico: {item.tecnico}</Text>
@@ -109,98 +107,77 @@ export default function Listas() {
       <Text>Observação: {item.observacao}</Text>
       <Text>Status: {item.status ? 'Concluído' : 'Pendente'}</Text>
       {!item.status && ( // Exibe o botão apenas se o status for "Pendente"
-        <Button onPress={() => toggleStatus(index)} mt={2}>
-          Mudar Status
-        </Button>
+        <Button title="Mudar Status" onPress={() => toggleStatus(index)} />
       )}
-    </Box>
+    </View>
   );
 
   const tarefasFiltradas = aplicarFiltros(ordenarTarefas(tarefas));
 
   return (
-    <NativeBaseProvider>
-      <Box safeArea p="2" py="8" w="90%" mx="auto">
-      <HStack justifyContent="space-between" alignItems="center" mb={4}>
-  <Text fontSize="2xl">Lista de Tarefas</Text>
-  <Button
-    onPress={() => navigation.navigate('Tarefas')}
-    size="sm"
-    colorScheme="teal"
-    borderRadius="full"
-    leftIcon={<Icon as={AntDesign} name="plus" size="sm" color="white" />}
-  >
-    
-  </Button>
-</HStack>
-        <Accordion allowMultiple>
-          <Accordion.Item>
-            <Accordion.Summary _expanded={{ backgroundColor: "gray.200" }}>
-              <Text>Filtros</Text>
-              <Accordion.Icon />
-            </Accordion.Summary>
-            <Accordion.Details>
-              <VStack space={4} mb={4}>
-                <Select
-                  selectedValue={filtros.status}
-                  minWidth="200"
-                  placeholder="Status"
-                  onValueChange={(value) => setFiltros({ ...filtros, status: value })}
-                >
-                  <Select.Item label="Todos" value="" />
-                  {opcoesFiltros.status.map((status, index) => (
-                    <Select.Item key={index} label={status.charAt(0).toUpperCase() + status.slice(1)} value={status} />
-                  ))}
-                </Select>
-                <Select
-                  selectedValue={filtros.cidade}
-                  minWidth="200"
-                  placeholder="Cidade"
-                  onValueChange={(value) => setFiltros({ ...filtros, cidade: value })}
-                >
-                  <Select.Item label="Todas" value="" />
-                  {opcoesFiltros.cidade.map((cidade, index) => (
-                    <Select.Item key={index} label={cidade} value={cidade} />
-                  ))}
-                </Select>
-                <Select
-                  selectedValue={filtros.tecnico}
-                  minWidth="200"
-                  placeholder="Técnico"
-                  onValueChange={(value) => setFiltros({ ...filtros, tecnico: value })}
-                >
-                  <Select.Item label="Todos" value="" />
-                  {opcoesFiltros.tecnico.map((tecnico, index) => (
-                    <Select.Item key={index} label={tecnico} value={tecnico} />
-                  ))}
-                </Select>
-                <Select
-                  selectedValue={filtros.supervisor}
-                  minWidth="200"
-                  placeholder="Supervisor"
-                  onValueChange={(value) => setFiltros({ ...filtros, supervisor: value })}
-                >
-                  <Select.Item label="Todos" value="" />
-                  {opcoesFiltros.supervisor.map((supervisor, index) => (
-                    <Select.Item key={index} label={supervisor} value={supervisor} />
-                  ))}
-                </Select>
-              </VStack>
-            </Accordion.Details>
-          </Accordion.Item>
-        </Accordion>
-        {loading ? (
-          <Spinner />
-        ) : (
-          <FlatList
-            data={tarefasFiltradas}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderItem}
-            onRefresh={fetchTarefas} // Função de pull-to-refresh
-            refreshing={loading} // Estado de carregamento
-          />
-        )}
-      </Box>
-    </NativeBaseProvider>
+    <View style={{ padding: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+        <Text style={{ fontSize: 24 }}>Lista de Tarefas</Text>
+        <Button
+          title="Adicionar Tarefa"
+          onPress={() => navigation.navigate('Tarefas')}
+        />
+      </View>
+
+      <View style={{ marginBottom: 20 }}>
+        <Text>Filtros</Text>
+        <Picker
+          selectedValue={filtros.status}
+          onValueChange={(value) => setFiltros({ ...filtros, status: value })}
+        >
+          <Picker.Item label="Todos" value="" />
+          {opcoesFiltros.status.map((status, index) => (
+            <Picker.Item key={index} label={status.charAt(0).toUpperCase() + status.slice(1)} value={status} />
+          ))}
+        </Picker>
+
+        <Picker
+          selectedValue={filtros.cidade}
+          onValueChange={(value) => setFiltros({ ...filtros, cidade: value })}
+        >
+          <Picker.Item label="Todas" value="" />
+          {opcoesFiltros.cidade.map((cidade, index) => (
+            <Picker.Item key={index} label={cidade} value={cidade} />
+          ))}
+        </Picker>
+
+        <Picker
+          selectedValue={filtros.tecnico}
+          onValueChange={(value) => setFiltros({ ...filtros, tecnico: value })}
+        >
+          <Picker.Item label="Todos" value="" />
+          {opcoesFiltros.tecnico.map((tecnico, index) => (
+            <Picker.Item key={index} label={tecnico} value={tecnico} />
+          ))}
+        </Picker>
+
+        <Picker
+          selectedValue={filtros.supervisor}
+          onValueChange={(value) => setFiltros({ ...filtros, supervisor: value })}
+        >
+          <Picker.Item label="Todos" value="" />
+          {opcoesFiltros.supervisor.map((supervisor, index) => (
+            <Picker.Item key={index} label={supervisor} value={supervisor} />
+          ))}
+        </Picker>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={tarefasFiltradas}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+          onRefresh={fetchTarefas} // Função de pull-to-refresh
+          refreshing={loading} // Estado de carregamento
+        />
+      )}
+    </View>
   );
 }

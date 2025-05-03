@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, Box, Input, Button, Text, VStack, Radio } from 'native-base';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { RadioButton } from 'react-native-paper';
 import { fetchCadastro } from '../telas/api'; // Ajuste o caminho conforme necessário
+
 
 export default function Cadastro({ navigation }) {
   const [nomeCompleto, setNomeCompleto] = useState('');
@@ -25,66 +27,94 @@ export default function Cadastro({ navigation }) {
   };
 
   return (
-    <NativeBaseProvider>
-      <Box flex={1} alignItems="center" justifyContent="center" p={4}>
-        <VStack space={4} w="100%">
-          <Text fontSize="2xl" mb={4}>Cadastro</Text>
-          <Input
-            placeholder="Nome Completo"
-            value={nomeCompleto}
-            onChangeText={setNomeCompleto}
-            variant="filled"
-            size="lg"
-          />
-          <Input
-            placeholder="Login"
-            value={login}
-            onChangeText={setLogin}
-            variant="filled"
-            size="lg"
-          />
-          <Input
-            placeholder="Senha"
-            value={senha}
-            onChangeText={setSenha}
-            type="password"
-            variant="filled"
-            size="lg"
-          />
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            variant="filled"
-            size="lg"
-          />
-          <Text>Função:</Text>
-          <Radio.Group
-            name="funcao"
-            value={funcao}
-            onChange={setFuncao}
-            accessibilityLabel="Escolha sua função"
-          >
-            <Radio value="tecnico" my={1}>
-              Técnico
-            </Radio>
-            <Radio value="supervisor" my={1}>
-              Supervisor
-            </Radio>
-          </Radio.Group>
-          <Button onPress={handleCadastro} colorScheme="blue">
-            Cadastrar
-          </Button>
-          {mensagem ? (
-            <Text mt={4} color={mensagem.includes('sucesso') ? 'green.500' : 'red.500'}>
-              {mensagem}
-            </Text>
-          ) : null}
-          <Button variant="link" onPress={() => navigation.goBack()}>
-            Voltar
-          </Button>
-        </VStack>
-      </Box>
-    </NativeBaseProvider>
+    <View style={styles.container}>
+      <Text style={styles.title}>Cadastro</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nome Completo"
+        value={nomeCompleto}
+        onChangeText={setNomeCompleto}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Login"
+        value={login}
+        onChangeText={setLogin}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Senha"
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <Text>Função:</Text>
+      <View style={styles.radioContainer}>
+        <RadioButton
+          value="tecnico"
+          status={funcao === 'tecnico' ? 'checked' : 'unchecked'}
+          onPress={() => setFuncao('tecnico')}
+        />
+        <Text>Técnico</Text>
+        <RadioButton
+          value="supervisor"
+          status={funcao === 'supervisor' ? 'checked' : 'unchecked'}
+          onPress={() => setFuncao('supervisor')}
+        />
+        <Text>Supervisor</Text>
+      </View>
+      <Button title="Cadastrar" onPress={handleCadastro} />
+      {mensagem ? (
+        <Text style={[styles.message, mensagem.includes('sucesso') ? styles.success : styles.error]}>
+          {mensagem}
+        </Text>
+      ) : null}
+      <Button title="Voltar" onPress={() => navigation.goBack()} />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 24,
+  },
+  input: {
+    width: '100%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 16,
+    paddingLeft: 8,
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  message: {
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  success: {
+    color: 'green',
+  },
+  error: {
+    color: 'red',
+  },
+  
+});
+
+

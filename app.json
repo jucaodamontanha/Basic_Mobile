@@ -2,7 +2,7 @@
   "expo": {
     "name": "Basic-mobile",
     "slug": "Basic-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,10 +13,17 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.basic",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
@@ -34,6 +41,10 @@
       "eas": {
         "projectId": "d366ea0e-3c5f-4708-94fe-4e8fd8be0e0b"
       }
+    },
+    "runtimeVersion": "1.0.0", 
+    "updates": {
+      "url": "https://u.expo.dev/d366ea0e-3c5f-4708-94fe-4e8fd8be0e0b"
     }
   }
 }

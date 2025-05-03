@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, Box, Input, Button, Text, VStack } from 'native-base';
-import { Alert } from 'react-native';
-import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
+import { View, TextInput, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import API_BASE_URL from '../telas/config';
 
 
 export default function Login({ navigation }) {
@@ -11,21 +10,18 @@ export default function Login({ navigation }) {
 
   const handleLogin = async () => {
     if (email === 'root' && senha === 'root') {
-      navigation.navigate('Cadastro'); // Redireciona para a tela de cadastro
+      navigation.navigate('Cadastro');
       return;
     }
 
     if (email && senha) {
       try {
-        const response = await fetch(`${API_BASE_URL}/login`, { // Substitua pela URL correta da sua API
+        const response = await fetch(`${API_BASE_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            email,
-            senha,
-          }),
+          body: JSON.stringify({ email, senha }),
         });
 
         if (response.ok) {
@@ -33,7 +29,7 @@ export default function Login({ navigation }) {
           if (contentType && contentType.indexOf('application/json') !== -1) {
             const data = await response.json();
             if (data.success) {
-              navigation.navigate('Dashboard'); // Redireciona para o Dashboard
+              navigation.navigate('Dashboard');
             } else {
               setMensagem(data.message || 'Login inválido');
               Alert.alert('Erro', data.message || 'Login inválido');
@@ -42,7 +38,6 @@ export default function Login({ navigation }) {
             setMensagem('Resposta inesperada do servidor');
             Alert.alert('Erro', 'Resposta inesperada do servidor');
           }
-        
         } else {
           const errorData = await response.json();
           setMensagem(errorData.message || 'Erro ao realizar login');
@@ -60,44 +55,76 @@ export default function Login({ navigation }) {
   };
 
   return (
-    <NativeBaseProvider>
-      <Box 
-        safeArea 
-        flex={1} 
-        justifyContent="center" 
-        alignItems="center" 
-        p="2" 
-        w="90%" 
-        mx="auto"
-      >
-        <Text fontSize="2xl" mb="4">Faça seu Login</Text>
-        <VStack space={4} w="100%">
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <Input
-            placeholder="Senha"
-            type="password"
-            value={senha}
-            onChangeText={setSenha}
-          />
-          <Button onPress={handleLogin}>Entrar</Button>
-          {mensagem ? (
-            <Text mt={4} color={mensagem.includes('sucesso') ? 'green.500' : 'red.500'}>
-              {mensagem}
-            </Text>
-          ) : null}
-          <Text 
-            onPress={() => console.log('Redirecionar para recuperação de senha')} 
-            color="blue.500"
-            textAlign="center"
-          >
-            Esqueceu a senha?
-          </Text>
-        </VStack>
-      </Box>
-    </NativeBaseProvider>
+    <View style={styles.container}>
+      <Text style={styles.title}>Faça seu Login</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Senha"
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry
+      />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
+      </TouchableOpacity>
+      {mensagem ? (
+        <Text style={[styles.message, { color: mensagem.includes('sucesso') ? 'green' : 'red' }]}>
+          {mensagem}
+        </Text>
+      ) : null}
+      <Text style={styles.link} onPress={() => console.log('Redirecionar para recuperação de senha')}>
+        Esqueceu a senha?
+      </Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  input: {
+    height: 48,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  message: {
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  link: {
+    marginTop: 12,
+    color: '#007AFF',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+});

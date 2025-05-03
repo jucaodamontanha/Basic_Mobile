@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { NativeBaseProvider, Box, Button, Text, VStack, Input, Select } from 'native-base';
-import { useTarefa } from './contextApi'; // Ajuste o caminho conforme necessário
-import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
+import { View, TextInput, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // precisa instalar: expo install @react-native-picker/picker
+import { useTarefa } from './contextApi';
+import API_BASE_URL from '../telas/config';
 
 export default function Tarefa({ navigation }) {
   const { adicionarTarefa } = useTarefa();
@@ -13,7 +14,7 @@ export default function Tarefa({ navigation }) {
   const [observacao, setObservacao] = useState('');
   const [status, setStatus] = useState('pendente');
   const [tecnicos, setTecnicos] = useState([]);
-  const [supervisores, setSupervisores] = useState([]); // Novo estado para supervisores
+  const [supervisores, setSupervisores] = useState([]);
 
   useEffect(() => {
     const fetchTecnicos = async () => {
@@ -26,7 +27,7 @@ export default function Tarefa({ navigation }) {
       }
     };
 
-    const fetchSupervisores = async () => { // Função para buscar supervisores
+    const fetchSupervisores = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/cadastros/supervisores`);
         const data = await response.json();
@@ -37,15 +38,15 @@ export default function Tarefa({ navigation }) {
     };
 
     fetchTecnicos();
-    fetchSupervisores(); // Chama a função para buscar supervisores
+    fetchSupervisores();
   }, []);
 
   const handleAdicionarTarefa = async () => {
     if (!numeroContrato || !cidade || !tecnico || !supervisor || !dataLimite) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-  
+
     const novaTarefa = {
       numeroContrato: parseInt(numeroContrato, 10),
       cidade,
@@ -55,7 +56,7 @@ export default function Tarefa({ navigation }) {
       observacao,
       status: status === 'pendente' ? false : true,
     };
-  
+
     try {
       const response = await fetch(`${API_BASE_URL}/tarefa`, {
         method: 'POST',
@@ -64,18 +65,18 @@ export default function Tarefa({ navigation }) {
         },
         body: JSON.stringify(novaTarefa),
       });
-  
+
       if (response.ok) {
         adicionarTarefa(novaTarefa);
         navigation.goBack();
       } else {
         const errorData = await response.json();
         console.error('Erro ao adicionar tarefa:', errorData);
-        alert('Erro ao adicionar tarefa.');
+        Alert.alert('Erro', 'Erro ao adicionar tarefa.');
       }
     } catch (error) {
       console.error('Erro ao conectar com a API:', error);
-      alert('Erro ao conectar com a API.');
+      Alert.alert('Erro', 'Erro ao conectar com a API.');
     }
   };
 
@@ -88,67 +89,120 @@ export default function Tarefa({ navigation }) {
   };
 
   return (
-    <NativeBaseProvider>
-      <Box safeArea p="2" py="8" w="90%" mx="auto">
-        <Text fontSize="2xl" mb="4">Adicionar Nova Tarefa</Text>
-        <VStack space={4}>
-          <Input 
-            placeholder="Número do Contrato" 
-            value={numeroContrato} 
-            onChangeText={setNumeroContrato} 
-            isRequired 
-          />
-          <Input 
-            placeholder="Cidade" 
-            value={cidade} 
-            onChangeText={setCidade} 
-            isRequired 
-          />
-          <Select 
-            selectedValue={tecnico} 
-            minWidth="200" 
-            placeholder="Técnico" 
-            onValueChange={setTecnico}
-            isRequired
-          >
-            {Array.isArray(tecnicos) && tecnicos.map((tec, index) => (
-              <Select.Item key={index} label={tec.nomeCompleto} value={tec.nomeCompleto} />
-            ))}
-          </Select>
-          <Select 
-            selectedValue={supervisor} 
-            minWidth="200" 
-            placeholder="Supervisor" 
-            onValueChange={setSupervisor}
-            isRequired
-          >
-            {Array.isArray(supervisores) && supervisores.map((sup, index) => (
-              <Select.Item key={index} label={sup.nomeCompleto} value={sup.nomeCompleto} />
-            ))}
-          </Select>
-          <Input 
-            placeholder="Data Limite" 
-            value={dataLimite} 
-            onChangeText={formatarData} 
-            isRequired 
-          />
-          <Input 
-            placeholder="Observação" 
-            value={observacao} 
-            onChangeText={setObservacao} 
-          />
-          <Select 
-            selectedValue={status} 
-            minWidth="200" 
-            placeholder="Status" 
-            onValueChange={setStatus}
-          >
-            <Select.Item label="Pendente" value="pendente" />
-            <Select.Item label="Concluído" value="concluido" />
-          </Select>
-          <Button onPress={handleAdicionarTarefa} colorScheme="blue">Adicionar Tarefa</Button>
-        </VStack>
-      </Box>
-    </NativeBaseProvider>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Adicionar Nova Tarefa</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Número do Contrato"
+        value={numeroContrato}
+        onChangeText={setNumeroContrato}
+        keyboardType="numeric"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Cidade"
+        value={cidade}
+        onChangeText={setCidade}
+      />
+
+      <Text style={styles.label}>Técnico</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={tecnico}
+          onValueChange={(itemValue) => setTecnico(itemValue)}
+        >
+          <Picker.Item label="Selecione um técnico" value="" />
+          {tecnicos.map((tec, index) => (
+            <Picker.Item key={index} label={tec.nomeCompleto} value={tec.nomeCompleto} />
+          ))}
+        </Picker>
+      </View>
+
+      <Text style={styles.label}>Supervisor</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={supervisor}
+          onValueChange={(itemValue) => setSupervisor(itemValue)}
+        >
+          <Picker.Item label="Selecione um supervisor" value="" />
+          {supervisores.map((sup, index) => (
+            <Picker.Item key={index} label={sup.nomeCompleto} value={sup.nomeCompleto} />
+          ))}
+        </Picker>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Data Limite"
+        value={dataLimite}
+        onChangeText={formatarData}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Observação"
+        value={observacao}
+        onChangeText={setObservacao}
+      />
+
+      <Text style={styles.label}>Status</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={status}
+          onValueChange={(itemValue) => setStatus(itemValue)}
+        >
+          <Picker.Item label="Pendente" value="pendente" />
+          <Picker.Item label="Concluído" value="concluido" />
+        </Picker>
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={handleAdicionarTarefa}>
+        <Text style={styles.buttonText}>Adicionar Tarefa</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 22,
+    marginBottom: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  label: {
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+});
