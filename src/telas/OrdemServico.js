@@ -209,8 +209,8 @@ export default function OrdemServico({ navigation }) {
         </>
       ) : (
         <View style={{ alignItems: 'center', marginVertical: 12 }}>
-          <Image source={{ uri: assinatura }} style={{ width: 300, height: 150 }} />
-          <Button title="Limpar Assinatura" onPress={handleClearSignature} />
+          <Image source={{ uri: assinatura }} style={{ width: 300, height: 150}} />
+          <Button title="Limpar Assinatura" onPress={handleClearSignature} style={{marginTop:8}} />
         </View>
       )}
 
