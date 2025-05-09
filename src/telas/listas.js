@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView } from 'react-native';
+import { Button, Card, Title, Text, ActivityIndicator, Modal, Portal } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
-import API_BASE_URL from '../telas/config'; // Importa o endereço base da API
+import API_BASE_URL from '../telas/config';
 
 export default function Listas() {
   const [tarefas, setTarefas] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const [filtros, setFiltros] = useState({
     status: '',
     cidade: '',
     tecnico: '',
     supervisor: ''
   });
+
   const [opcoesFiltros, setOpcoesFiltros] = useState({
     status: ['pendente', 'concluido'],
     cidade: [],
     tecnico: [],
     supervisor: []
   });
+
   const navigation = useNavigation();
 
   const fetchTarefas = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/tarefas`); // Usa o endereço centralizado
+      const response = await fetch(`${API_BASE_URL}/tarefas`);
       const data = await response.json();
       setTarefas(data);
       atualizarOpcoesFiltros(data);
@@ -36,15 +41,15 @@ export default function Listas() {
   };
 
   const atualizarOpcoesFiltros = (tarefas) => {
-    const cidades = [...new Set(tarefas.map(tarefa => tarefa.cidade))];
-    const tecnicos = [...new Set(tarefas.map(tarefa => tarefa.tecnico))];
-    const supervisores = [...new Set(tarefas.map(tarefa => tarefa.supervisor))];
-    setOpcoesFiltros({
-      ...opcoesFiltros,
+    const cidades = [...new Set(tarefas.map(t => t.cidade))];
+    const tecnicos = [...new Set(tarefas.map(t => t.tecnico))];
+    const supervisores = [...new Set(tarefas.map(t => t.supervisor))];
+    setOpcoesFiltros(prev => ({
+      ...prev,
       cidade: cidades,
       tecnico: tecnicos,
       supervisor: supervisores
-    });
+    }));
   };
 
   useEffect(() => {
@@ -52,23 +57,18 @@ export default function Listas() {
   }, []);
 
   const toggleStatus = async (index) => {
-    const novaLista = [...tarefas];
-    const tarefa = novaLista[index];
-    const novoStatus = !tarefa.status; // Inverte o status atual
-
-    console.log('Atualizando status da tarefa:', tarefa); // Adicione este log
+    const tarefa = tarefas[index];
+    const novoStatus = !tarefa.status;
 
     try {
       const response = await fetch(`${API_BASE_URL}/tarefas/${tarefa.id}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(novoStatus),
       });
 
       if (response.ok) {
-        await fetchTarefas(); // Atualiza a lista de tarefas no estado
+        fetchTarefas();
       } else {
         console.error('Erro ao atualizar status da tarefa');
       }
@@ -97,87 +97,134 @@ export default function Listas() {
     });
   };
 
+  const getBorderColor = (item) => {
+    const hoje = new Date();
+    const dataFinal = new Date(item.dataFinal);
+
+    if (item.status) return 'green';
+    if (!item.status && dataFinal >= hoje) return 'orange';
+    return 'red';
+  };
+
   const renderItem = ({ item, index }) => (
-    <View style={{ padding: 10, borderBottomWidth: 1, borderColor: 'gray', marginBottom: 10 }}>
-      <Text>Número do Contrato: {item.numeroContrato}</Text>
-      <Text>Cidade: {item.cidade}</Text>
-      <Text>Técnico: {item.tecnico}</Text>
-      <Text>Supervisor: {item.supervisor}</Text>
-      <Text>Data Limite: {item.dataFinal}</Text>
-      <Text>Observação: {item.observacao}</Text>
-      <Text>Status: {item.status ? 'Concluído' : 'Pendente'}</Text>
-      {!item.status && ( // Exibe o botão apenas se o status for "Pendente"
-        <Button title="Mudar Status" onPress={() => toggleStatus(index)} />
-      )}
-    </View>
+    <Card
+      style={[
+        styles.card,
+        { borderLeftWidth: 6, borderLeftColor: getBorderColor(item) }
+      ]}
+      mode="outlined"
+    >
+      <Card.Content>
+        <Text>Número do Contrato: {item.numeroContrato}</Text>
+        <Text>Cidade: {item.cidade}</Text>
+        <Text>Técnico: {item.tecnico}</Text>
+        <Text>Supervisor: {item.supervisor}</Text>
+        <Text>Data Limite: {item.dataFinal}</Text>
+        <Text>Observação: {item.observacao}</Text>
+        <Text>Status: {item.status ? 'Concluído' : 'Pendente'}</Text>
+        {!item.status && (
+          <Button mode="contained" onPress={() => toggleStatus(index)} style={{ marginTop: 10 }}>
+            Mudar Status
+          </Button>
+        )}
+      </Card.Content>
+    </Card>
   );
 
   const tarefasFiltradas = aplicarFiltros(ordenarTarefas(tarefas));
 
   return (
-    <View style={{ padding: 16 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-        <Text style={{ fontSize: 24 }}>Lista de Tarefas</Text>
-        <Button
-          title="Adicionar Tarefa"
-          onPress={() => navigation.navigate('Tarefas')}
-        />
-      </View>
-
-      <View style={{ marginBottom: 20 }}>
-        <Text>Filtros</Text>
-        <Picker
-          selectedValue={filtros.status}
-          onValueChange={(value) => setFiltros({ ...filtros, status: value })}
-        >
-          <Picker.Item label="Todos" value="" />
-          {opcoesFiltros.status.map((status, index) => (
-            <Picker.Item key={index} label={status.charAt(0).toUpperCase() + status.slice(1)} value={status} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={filtros.cidade}
-          onValueChange={(value) => setFiltros({ ...filtros, cidade: value })}
-        >
-          <Picker.Item label="Todas" value="" />
-          {opcoesFiltros.cidade.map((cidade, index) => (
-            <Picker.Item key={index} label={cidade} value={cidade} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={filtros.tecnico}
-          onValueChange={(value) => setFiltros({ ...filtros, tecnico: value })}
-        >
-          <Picker.Item label="Todos" value="" />
-          {opcoesFiltros.tecnico.map((tecnico, index) => (
-            <Picker.Item key={index} label={tecnico} value={tecnico} />
-          ))}
-        </Picker>
-
-        <Picker
-          selectedValue={filtros.supervisor}
-          onValueChange={(value) => setFiltros({ ...filtros, supervisor: value })}
-        >
-          <Picker.Item label="Todos" value="" />
-          {opcoesFiltros.supervisor.map((supervisor, index) => (
-            <Picker.Item key={index} label={supervisor} value={supervisor} />
-          ))}
-        </Picker>
-      </View>
-
+    <View style={{ flex: 1 }}>
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator animating={true} size="large" style={{ marginTop: 40 }} />
       ) : (
-        <FlatList
-          data={tarefasFiltradas}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={renderItem}
-          onRefresh={fetchTarefas} // Função de pull-to-refresh
-          refreshing={loading} // Estado de carregamento
-        />
+        <>
+          <FlatList
+            data={tarefasFiltradas}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderItem}
+            onRefresh={fetchTarefas}
+            refreshing={loading}
+            contentContainerStyle={styles.container}
+            ListHeaderComponent={
+              <>
+                <View style={styles.header}>
+                  <Title style={styles.titulo}>Lista de Tarefas</Title>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Button mode="contained" icon="filter" onPress={() => setModalVisible(true)}>
+                      Filtros
+                    </Button>
+                    <Button mode="contained" icon="plus" onPress={() => navigation.navigate('Tarefas')}>
+                      Nova Tarefa
+                    </Button>
+                  </View>
+                </View>
+              </>
+            }
+          />
+
+          {/* Filtros em Modal */}
+          <Portal>
+            <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContainer}>
+              <Card>
+                <Card.Title title="Filtrar Tarefas" />
+                <Card.Content>
+                  {['status', 'cidade', 'tecnico', 'supervisor'].map((campo, i) => (
+                    <View key={i} style={styles.pickerContainer}>
+                      <Text style={styles.label}>{campo.charAt(0).toUpperCase() + campo.slice(1)}:</Text>
+                      <Picker
+                        selectedValue={filtros[campo]}
+                        onValueChange={(value) => setFiltros({ ...filtros, [campo]: value })}
+                      >
+                        <Picker.Item label="Todos" value="" />
+                        {opcoesFiltros[campo].map((op, index) => (
+                          <Picker.Item key={index} label={String(op)} value={op} />
+                        ))}
+                      </Picker>
+                    </View>
+                  ))}
+                  <Button mode="contained" onPress={() => setModalVisible(false)} style={{ marginTop: 10 }}>
+                    Aplicar Filtros
+                  </Button>
+                </Card.Content>
+              </Card>
+            </Modal>
+          </Portal>
+        </>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 40
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  titulo: {
+    fontSize: 22,
+    fontWeight: 'bold'
+  },
+  card: {
+    marginBottom: 12
+  },
+  pickerContainer: {
+    marginBottom: 12
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 4
+  },
+  modalContainer: {
+    margin: 20,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10
+  }
+});

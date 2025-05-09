@@ -3,18 +3,20 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   ScrollView,
   Image,
   Alert,
   ActivityIndicator,
-  StyleSheet
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import * as ImageManipulator from 'expo-image-manipulator';
 import API_BASE_URL from './config';
+import { Picker } from '@react-native-picker/picker';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function OrdemServico({ navigation }) {
   const [supervisor, setSupervisor] = useState('');
@@ -70,10 +72,7 @@ export default function OrdemServico({ navigation }) {
       const resized = await ImageManipulator.manipulateAsync(
         uri,
         [{ resize: { width: 800 } }],
-        {
-          compress: 0.7,
-          format: ImageManipulator.SaveFormat.JPEG,
-        }
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
       setFotos((prev) => [...prev, resized.uri]);
     }
@@ -160,6 +159,13 @@ export default function OrdemServico({ navigation }) {
     }
   };
 
+  const CustomButton = ({ onPress, icon, label }) => (
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <MaterialIcons name={icon} size={20} color="#fff" />
+      <Text style={styles.buttonText}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }} scrollEnabled={scrollEnabled}>
       <Text style={styles.title}>Criar Ordem de Serviço</Text>
@@ -176,12 +182,16 @@ export default function OrdemServico({ navigation }) {
 
       <Text style={styles.label}>Tipo de Atendimento:</Text>
       <View style={styles.pickerWrapper}>
-        <TextInput
-          placeholder="Instalação / Manutenção / Outro"
-          style={styles.input}
-          value={tipoAtendimento}
-          onChangeText={setTipoAtendimento}
-        />
+        <Picker
+          selectedValue={tipoAtendimento}
+          onValueChange={(itemValue) => setTipoAtendimento(itemValue)}
+          style={{ height: 50 }}
+        >
+          <Picker.Item label="Selecione..." value="" />
+          <Picker.Item label="Instalação" value="Instalação" />
+          <Picker.Item label="Manutenção" value="Manutenção" />
+          <Picker.Item label="Outro" value="Outro" />
+        </Picker>
       </View>
 
       <TextInput
@@ -205,16 +215,17 @@ export default function OrdemServico({ navigation }) {
               webStyle={`.button { display: none; }`}
             />
           </View>
-          <Button title="Salvar Assinatura" onPress={() => signatureRef.current.readSignature()} />
+          <CustomButton icon="check" label="Salvar Assinatura" onPress={() => signatureRef.current.readSignature()} />
         </>
       ) : (
         <View style={{ alignItems: 'center', marginVertical: 12 }}>
-          <Image source={{ uri: assinatura }} style={{ width: 300, height: 150}} />
-          <Button title="Limpar Assinatura" onPress={handleClearSignature} style={{marginTop:8}} />
+          <Image source={{ uri: assinatura }} style={{ width: 300, height: 150 }} />
+          <CustomButton icon="delete" label="Limpar Assinatura" onPress={handleClearSignature} />
         </View>
       )}
 
-      <Button title="Adicionar Foto" onPress={handleAdicionarFoto} />
+      <CustomButton icon="add-a-photo" label="Adicionar Foto" onPress={handleAdicionarFoto} />
+
       <ScrollView horizontal contentContainerStyle={{ marginVertical: 12 }}>
         {fotos.map((foto, index) => (
           <Image key={`foto-${index}`} source={{ uri: foto }} style={{ width: 100, height: 100, marginRight: 8 }} />
@@ -224,7 +235,7 @@ export default function OrdemServico({ navigation }) {
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        <Button title="Enviar Ordem de Serviço" onPress={handleSubmit} />
+        <CustomButton icon="send" label="Enviar Ordem de Serviço" onPress={handleSubmit} />
       )}
     </ScrollView>
   );
@@ -265,5 +276,25 @@ const styles = StyleSheet.create({
     color: '#444',
     marginBottom: 6,
     marginTop: 8,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
