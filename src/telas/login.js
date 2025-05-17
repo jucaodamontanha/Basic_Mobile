@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import API_BASE_URL from '../telas/config';
 
-
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -60,6 +59,7 @@ export default function Login({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#666"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -68,6 +68,7 @@ export default function Login({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Senha"
+        placeholderTextColor="#666"
         value={senha}
         onChangeText={setSenha}
         secureTextEntry
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
+    backgroundColor: '#f2f2f2', // Fundo claro para melhor contraste
   },
   title: {
     fontSize: 24,
@@ -106,6 +108,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 16,
+    color: '#000', // garante que o texto digitado apareça
   },
   button: {
     backgroundColor: '#007AFF',

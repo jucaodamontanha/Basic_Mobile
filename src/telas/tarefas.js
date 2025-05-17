@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // precisa instalar: expo install @react-native-picker/picker
+import {
+  View,
+  TextInput,
+  Text,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useTarefa } from './contextApi';
 import API_BASE_URL from '../telas/config';
 
@@ -81,7 +89,8 @@ export default function Tarefa({ navigation }) {
   };
 
   const formatarData = (data) => {
-    const dataFormatada = data.replace(/\D/g, '')
+    const dataFormatada = data
+      .replace(/\D/g, '')
       .replace(/(\d{2})(\d)/, '$1/$2')
       .replace(/(\d{2})(\d)/, '$1/$2')
       .replace(/(\d{4})(\d)/, '$1');
@@ -95,6 +104,7 @@ export default function Tarefa({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Número do Contrato"
+        placeholderTextColor="#666"
         value={numeroContrato}
         onChangeText={setNumeroContrato}
         keyboardType="numeric"
@@ -103,6 +113,7 @@ export default function Tarefa({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Cidade"
+        placeholderTextColor="#666"
         value={cidade}
         onChangeText={setCidade}
       />
@@ -112,10 +123,17 @@ export default function Tarefa({ navigation }) {
         <Picker
           selectedValue={tecnico}
           onValueChange={(itemValue) => setTecnico(itemValue)}
+          style={styles.picker}
+          dropdownIconColor="#000"
         >
-          <Picker.Item label="Selecione um técnico" value="" />
+          <Picker.Item label="Selecione um técnico" value="" color="#999" />
           {tecnicos.map((tec, index) => (
-            <Picker.Item key={index} label={tec.nomeCompleto} value={tec.nomeCompleto} />
+            <Picker.Item
+              key={index}
+              label={tec.nomeCompleto}
+              value={tec.nomeCompleto}
+              color="#000"
+            />
           ))}
         </Picker>
       </View>
@@ -125,17 +143,25 @@ export default function Tarefa({ navigation }) {
         <Picker
           selectedValue={supervisor}
           onValueChange={(itemValue) => setSupervisor(itemValue)}
+          style={styles.picker}
+          dropdownIconColor="#000"
         >
-          <Picker.Item label="Selecione um supervisor" value="" />
+          <Picker.Item label="Selecione um supervisor" value="" color="#999" />
           {supervisores.map((sup, index) => (
-            <Picker.Item key={index} label={sup.nomeCompleto} value={sup.nomeCompleto} />
+            <Picker.Item
+              key={index}
+              label={sup.nomeCompleto}
+              value={sup.nomeCompleto}
+              color="#000"
+            />
           ))}
         </Picker>
       </View>
 
       <TextInput
         style={styles.input}
-        placeholder="Data Limite"
+        placeholder="Data Limite (dd/mm/aaaa)"
+        placeholderTextColor="#666"
         value={dataLimite}
         onChangeText={formatarData}
       />
@@ -143,6 +169,7 @@ export default function Tarefa({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Observação"
+        placeholderTextColor="#666"
         value={observacao}
         onChangeText={setObservacao}
       />
@@ -152,9 +179,11 @@ export default function Tarefa({ navigation }) {
         <Picker
           selectedValue={status}
           onValueChange={(itemValue) => setStatus(itemValue)}
+          style={styles.picker}
+          dropdownIconColor="#000"
         >
-          <Picker.Item label="Pendente" value="pendente" />
-          <Picker.Item label="Concluído" value="concluido" />
+          <Picker.Item label="Pendente" value="pendente" color="#000" />
+          <Picker.Item label="Concluído" value="concluido" color="#000" />
         </Picker>
       </View>
 
@@ -169,12 +198,14 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 22,
     marginBottom: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: '#000',
   },
   input: {
     height: 48,
@@ -183,6 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 16,
+    color: '#000',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -190,9 +222,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
   },
+  picker: {
+    height: 48,
+    color: '#000', // cor do texto selecionado
+    paddingHorizontal: 12,
+  },
   label: {
     marginBottom: 4,
     fontWeight: 'bold',
+    color: '#000',
   },
   button: {
     backgroundColor: '#007AFF',

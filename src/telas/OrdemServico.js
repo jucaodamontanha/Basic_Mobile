@@ -170,15 +170,63 @@ export default function OrdemServico({ navigation }) {
     <ScrollView contentContainerStyle={{ padding: 16 }} scrollEnabled={scrollEnabled}>
       <Text style={styles.title}>Criar Ordem de Serviço</Text>
 
-      <TextInput placeholder="Nome do Cliente" style={styles.input} value={nomeCliente} onChangeText={setNomeCliente} />
-      <TextInput placeholder="Endereço" style={styles.input} value={endereco} onChangeText={setEndereco} />
-      <TextInput placeholder="Número" style={styles.input} value={numero} onChangeText={setNumero} />
-      <TextInput placeholder="Cidade" style={styles.input} value={cidade} onChangeText={setCidade} />
-      <TextInput placeholder="Número do Contrato" style={styles.input} value={numeroContrato} onChangeText={setNumeroContrato} />
-      <TextInput placeholder="Email do Cliente" style={styles.input} value={emailCliente} onChangeText={setEmailCliente} />
-      <TextInput placeholder="Nome de Quem Atendeu" style={styles.input} value={nomeAtendente} onChangeText={setNomeAtendente} />
+      <TextInput
+        placeholder="Nome do Cliente"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={nomeCliente}
+        onChangeText={setNomeCliente}
+      />
+      <TextInput
+        placeholder="Endereço"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={endereco}
+        onChangeText={setEndereco}
+      />
+      <TextInput
+        placeholder="Número"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={numero}
+        onChangeText={setNumero}
+      />
+      <TextInput
+        placeholder="Cidade"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={cidade}
+        onChangeText={setCidade}
+      />
+      <TextInput
+        placeholder="Número do Contrato"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={numeroContrato}
+        onChangeText={setNumeroContrato}
+      />
+      <TextInput
+        placeholder="Email do Cliente"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={emailCliente}
+        onChangeText={setEmailCliente}
+      />
+      <TextInput
+        placeholder="Nome de Quem Atendeu"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={nomeAtendente}
+        onChangeText={setNomeAtendente}
+      />
 
-      <TextInput placeholder="Supervisor" style={styles.input} value={supervisor} onChangeText={setSupervisor} />
+      <TextInput
+        placeholder="Supervisor"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={supervisor}
+        onChangeText={setSupervisor}
+      />
 
       <Text style={styles.label}>Tipo de Atendimento:</Text>
       <View style={styles.pickerWrapper}>
@@ -196,6 +244,7 @@ export default function OrdemServico({ navigation }) {
 
       <TextInput
         placeholder="Observação"
+        placeholderTextColor="#888"
         value={observacao}
         onChangeText={setObservacao}
         multiline
@@ -256,6 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 14,
     paddingHorizontal: 12,
+    color: '#000', // texto preto para melhor visibilidade
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },

@@ -3,7 +3,6 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { RadioButton } from 'react-native-paper';
 import { fetchCadastro } from '../telas/api'; // Ajuste o caminho conforme necessário
 
-
 export default function Cadastro({ navigation }) {
   const [nomeCompleto, setNomeCompleto] = useState('');
   const [login, setLogin] = useState('');
@@ -29,6 +28,7 @@ export default function Cadastro({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Cadastro</Text>
+      
       <TextInput
         style={styles.input}
         placeholder="Nome Completo"
@@ -54,6 +54,7 @@ export default function Cadastro({ navigation }) {
         value={email}
         onChangeText={setEmail}
       />
+
       <Text>Função:</Text>
       <View style={styles.radioContainer}>
         <RadioButton
@@ -69,13 +70,20 @@ export default function Cadastro({ navigation }) {
         />
         <Text>Supervisor</Text>
       </View>
-      <Button title="Cadastrar" onPress={handleCadastro} />
+
+      <View style={{ marginTop: 16, width: '100%' }}>
+        <Button title="Cadastrar" onPress={handleCadastro} />
+      </View>
+
       {mensagem ? (
         <Text style={[styles.message, mensagem.includes('sucesso') ? styles.success : styles.error]}>
           {mensagem}
         </Text>
       ) : null}
-      <Button title="Voltar" onPress={() => navigation.goBack()} />
+
+      <View style={{ marginTop: 16, width: '100%' }}>
+        <Button title="Voltar" onPress={() => navigation.goBack()} />
+      </View>
     </View>
   );
 }
@@ -114,7 +122,4 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
   },
-  
 });
-
-
