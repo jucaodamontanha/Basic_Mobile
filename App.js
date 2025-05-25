@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import { Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { TarefaProvider } from './src/telas/contextApi';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,7 +17,25 @@ import OrdemServico from './src/telas/OrdemServico';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  useEffect(() => {}, []);
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Atualização disponível',
+            'O app será reiniciado para aplicar as correções.',
+            [{ text: 'OK', onPress: () => Updates.reloadAsync() }]
+          );
+        }
+      } catch (e) {
+        console.log('Erro ao verificar atualizações:', e);
+      }
+    }
+
+    checkForUpdates();
+  }, []);
 
   return (
     <PaperProvider>
